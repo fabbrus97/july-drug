@@ -70,7 +70,10 @@ def cancer_drugint_checker(drug_a: str, drug_b: str):
 
     # --- Step 3: fetch interactions ---
     try:
-        interactions = fetch_json("interactions")
+        interactions = CACHE.get("interactions")
+        if interactions == None:
+            interactions = fetch_json("interactions")
+            CACHE["interactions"] = interactions
     except Exception as e:
         print(f"Error fetching interactions: {e}")
         return None
