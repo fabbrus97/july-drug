@@ -294,4 +294,4 @@ if __name__ == "__main__":
 
         return render_template_string(results_html, drug_a=drug_a, drug_b=drug_b, results=results)
 
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=6907, debug=True)
