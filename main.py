@@ -6,6 +6,8 @@ from typing import List, Tuple, Optional, Any
 API_KEY = "bada1dd77453448ed659a82b73340311"
 BASE_URL = "https://cancer-druginteractions.org/api/v1"
 
+CACHE = {} #fake cache, is not refreshed
+
 HEADERS_CANCER = {
     "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0",
     "Accept": "application/json, text/plain, */*",
@@ -28,8 +30,15 @@ def cancer_drugint_checker(drug_a: str, drug_b: str):
 
     # --- Step 1: fetch both endpoints ---
     try:
-        drugs_data = fetch_json("drugs")
-        comeds_data = fetch_json("comeds")
+        drugs_data = CACHE.get("drugs_data")
+        if drugs_data == None:
+            drugs_data = fetch_json("drugs")
+            CACHE["drugs_data"] = drugs_data
+        comeds_data = CACHE.get("comeds_data")
+        if comeds_data == None:
+            comeds_data = fetch_json("comeds")
+            CACHE["comeds_data"] = comeds_data
+
     except Exception as e:
         print(f"Error fetching drug lists: {e}")
         return None
@@ -172,13 +181,17 @@ def drugscom_interaction_checker(drug_a: str, drug_b: str) -> List[Tuple[Optiona
     results: List[Tuple[Optional[str], Optional[str]]] = []
 
     for div in soup.select("div.interactions-reference-wrapper"):
+        # print("[DEBUG] div")
+        # print(div)
         status_el = div.select_one("span.ddc-status-label")
         # There may be multiple <p> tags; collect their text concatenated or choose the first.
         p_el = div.select_one("p")
         status_text = status_el.get_text(strip=True) if status_el else None
+        # print("[DEBUG] status text is", status_text)
         p_text = p_el.get_text(" ", strip=True) if p_el else None
         if status_text or p_text:
             results.append((status_text, p_text))
+        break
 
     return results
 
